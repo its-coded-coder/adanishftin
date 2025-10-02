@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import NotificationCenter from './NotificationCenter';
 
 export default function Navbar() {
   const { user, logout } = useAuth();
@@ -15,6 +16,9 @@ export default function Navbar() {
             <div className="ml-10 flex space-x-4">
               <Link to="/" className="text-gray-700 hover:text-gray-900 px-3 py-2">
                 Articles
+              </Link>
+              <Link to="/collections" className="text-gray-700 hover:text-gray-900 px-3 py-2">
+                Collections
               </Link>
               {user && (
                 <>
@@ -34,8 +38,14 @@ export default function Navbar() {
             </div>
           </div>
           <div className="flex items-center space-x-4">
+            <Link to="/search" className="text-gray-700 hover:text-gray-900">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </Link>
             {user ? (
               <>
+                <NotificationCenter />
                 <Link to="/profile" className="text-gray-700 hover:text-gray-900">
                   {user.name}
                 </Link>
