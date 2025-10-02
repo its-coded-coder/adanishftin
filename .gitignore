@@ -1,0 +1,12 @@
+node_modules/
+.env
+.DS_Store
+dist/
+build/
+*.log
+.vscode/
+.idea/
+prisma/migrations/
+client/node_modules/
+client/dist/
+client/.env
