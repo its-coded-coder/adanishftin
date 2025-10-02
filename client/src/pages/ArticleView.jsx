@@ -4,6 +4,11 @@ import { loadStripe } from '@stripe/stripe-js';
 import { Elements, CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import { articles, profile as profileAPI, payments } from '../utils/api';
 import { useAuth } from '../context/AuthContext';
+import Comments from '../components/Comments';
+import ReactionButtons from '../components/ReactionButtons';
+import ShareButtons from '../components/ShareButtons';
+import RelatedArticles from '../components/RelatedArticles';
+import ReadingProgress from '../components/ReadingProgress';
 
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY || 'pk_test_placeholder');
 
@@ -103,11 +108,6 @@ export default function ArticleView() {
     }
   };
 
-  const handleShare = () => {
-    navigator.clipboard.writeText(window.location.href);
-    alert('Link copied to clipboard!');
-  };
-
   if (loading) {
     return <div className="flex justify-center items-center h-screen">Loading...</div>;
   }
@@ -116,8 +116,11 @@ export default function ArticleView() {
     return <div className="text-center py-12">Article not found</div>;
   }
 
+  const articleUrl = window.location.href;
+
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <ReadingProgress articleId={article.id} />
       <article className="bg-white rounded-lg shadow-lg p-8">
         {article.coverImage && (
           <img
@@ -135,6 +138,9 @@ export default function ArticleView() {
             <span className="text-gray-400">
               {new Date(article.publishedAt).toLocaleDateString()}
             </span>
+            {article.readingTime && (
+              <span className="text-gray-400">{article.readingTime} min read</span>
+            )}
           </div>
           {user && (
             <div className="flex space-x-2">
@@ -144,15 +150,36 @@ export default function ArticleView() {
               >
                 {bookmarked ? 'Unbookmark' : 'Bookmark'}
               </button>
-              <button
-                onClick={handleShare}
-                className="px-4 py-2 border rounded hover:bg-gray-50"
-              >
-                Share
-              </button>
+              <ShareButtons 
+                articleId={article.id}
+                articleTitle={article.title}
+                articleUrl={articleUrl}
+              />
             </div>
           )}
         </div>
+
+        {article.abstract && (
+          <div className="bg-gray-50 p-4 rounded-lg mb-6">
+            <h3 className="font-semibold mb-2">Abstract</h3>
+            <p className="text-gray-700">{article.abstract}</p>
+          </div>
+        )}
+
+        {article.keywords && (
+          <div className="mb-6">
+            <div className="flex flex-wrap gap-2">
+              {article.keywords.split(',').map((keyword, idx) => (
+                <span
+                  key={idx}
+                  className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm"
+                >
+                  {keyword.trim()}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
 
         {article.locked ? (
           <div className="text-center py-12">
@@ -180,10 +207,45 @@ export default function ArticleView() {
             )}
           </div>
         ) : (
-          <div
-            className="prose max-w-none"
-            dangerouslySetInnerHTML={{ __html: article.content }}
-          />
+          <>
+            <div
+              className="prose max-w-none mb-8"
+              dangerouslySetInnerHTML={{ __html: article.content }}
+            />
+
+            <div className="border-t pt-6 mb-8">
+              <ReactionButtons articleId={article.id} />
+            </div>
+
+            {article.citations && article.citations.length > 0 && (
+              <div className="border-t pt-6 mb-8">
+                <h3 className="text-xl font-bold mb-4">References</h3>
+                <ol className="space-y-2">
+                  {article.citations.map((citation, idx) => (
+                    <li key={citation.id} className="text-sm text-gray-700">
+                      {idx + 1}. {citation.authors}. {citation.title}. 
+                      {citation.journal && ` ${citation.journal}.`}
+                      {citation.year && ` ${citation.year}.`}
+                      {citation.doi && (
+                        <a 
+                          href={`https://doi.org/${citation.doi}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-600 ml-2"
+                        >
+                          DOI: {citation.doi}
+                        </a>
+                      )}
+                    </li>
+                  ))}
+                </ol>
+              </div>
+            )}
+
+            <Comments articleId={article.id} />
+
+            <RelatedArticles articleId={article.id} />
+          </>
         )}
       </article>
     </div>
