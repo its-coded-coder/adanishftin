@@ -1,0 +1,693 @@
+generator client {
+  provider = "prisma-client-js"
+  previewFeatures = ["fullTextIndex"]
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  name      String
+  role      Role     @default(USER)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  articles              Article[]
+  bookmarks             Bookmark[]
+  purchases             Purchase[]
+  sessions              Session[]
+  newsletterSubscription NewsletterSubscriber?
+  comments              Comment[]
+  commentLikes          CommentLike[]
+  articleLikes          ArticleLike[]
+  articleReactions      ArticleReaction[]
+  shares                Share[]
+  readingProgress       ReadingProgress[]
+  notifications         Notification[]
+  searchQueries         SearchQuery[]
+  articleViews          ArticleView[]
+  userSessions          UserSession[]
+  revenueAnalytics      RevenueAnalytics[]
+  readerBehavior        ReaderBehavior[]
+  userJourneys          UserJourney[]
+
+  @@index([email])
+}
+
+model Article {
+  id          String        @id @default(uuid())
+  title       String
+  slug        String        @unique
+  content     String        @db.LongText
+  excerpt     String?       @db.Text
+  coverImage  String?       @db.Text
+  status      ArticleStatus @default(DRAFT)
+  price       Float         @default(0)
+  isPremium   Boolean       @default(false)
+  authorId    String
+  publishedAt DateTime?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  doi             String?   @unique
+  keywords        String?   @db.Text
+  abstract        String?   @db.Text
+  publishedDate   DateTime?
+  pdfUrl          String?   @db.Text
+  supplementaryFiles String? @db.Text
+  readingTime     Int?
+  language        String    @default("en")
+  views           Int       @default(0)
+  uniqueViews     Int       @default(0)
+  shares          Int       @default(0)
+  likes           Int       @default(0)
+  commentsCount   Int       @default(0)
+  featured        Boolean   @default(false)
+
+  author    User       @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  bookmarks Bookmark[]
+  purchases Purchase[]
+  media     Media[]
+  tags      Tag[]      @relation("ArticleTags")
+  comments  Comment[]
+  articleLikes ArticleLike[]
+  articleReactions ArticleReaction[]
+  shareRecords Share[]
+  versions  ArticleVersion[]
+  citations Citation[]
+  pdfs      ArticlePDF[]
+  readingProgress ReadingProgress[]
+  relatedFrom RelatedArticle[] @relation("ArticleRelations")
+  relatedTo   RelatedArticle[] @relation("RelatedToArticles")
+  collectionArticles CollectionArticle[]
+  articleViews ArticleView[]
+  revenueAnalytics RevenueAnalytics[]
+  conversionFunnels ConversionFunnel[]
+  topContent TopContent[]
+  userJourneys UserJourney[]
+  archives ArticleArchive[]
+
+  @@index([status, publishedAt])
+  @@index([slug])
+  @@index([authorId])
+  @@index([isPremium, status])
+  @@index([doi])
+  @@fulltext([title, content])
+}
+
+model Media {
+  id        String    @id @default(uuid())
+  url       String    @db.Text
+  type      MediaType
+  articleId String
+  minioKey  String
+  size      Int
+  createdAt DateTime  @default(now())
+
+  article Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
+
+  @@index([articleId])
+}
+
+model Bookmark {
+  id        String   @id @default(uuid())
+  userId    String
+  articleId String
+  createdAt DateTime @default(now())
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  article Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, articleId])
+  @@index([userId])
+  @@index([articleId])
+}
+
+model Purchase {
+  id              String        @id @default(uuid())
+  userId          String
+  articleId       String
+  amount          Float
+  stripePaymentId String        @unique
+  status          PaymentStatus @default(PENDING)
+  createdAt       DateTime      @default(now())
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  article Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  revenueAnalytics RevenueAnalytics[]
+
+  @@index([userId])
+  @@index([articleId])
+  @@index([stripePaymentId])
+}
+
+model Comment {
+  id        String   @id @default(uuid())
+  articleId String
+  userId    String?
+  name      String
+  email     String?
+  content   String   @db.Text
+  approved  Boolean  @default(false)
+  likes     Int      @default(0)
+  parentId  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  article  Article   @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  user     User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+  parent   Comment?  @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies  Comment[] @relation("CommentReplies")
+  likedBy  CommentLike[]
+
+  @@index([articleId])
+  @@index([userId])
+  @@index([parentId])
+  @@index([approved])
+}
+
+model CommentLike {
+  id        String   @id @default(uuid())
+  commentId String
+  userId    String?
+  ipAddress String?
+  createdAt DateTime @default(now())
+
+  comment Comment @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  user    User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@unique([commentId, userId])
+  @@unique([commentId, ipAddress])
+  @@index([commentId])
+}
+
+model ArticleLike {
+  id        String   @id @default(uuid())
+  articleId String
+  userId    String?
+  ipAddress String?
+  createdAt DateTime @default(now())
+
+  article Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  user    User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@unique([articleId, userId])
+  @@unique([articleId, ipAddress])
+  @@index([articleId])
+}
+
+model ArticleReaction {
+  id         String       @id @default(uuid())
+  articleId  String
+  userId     String?
+  ipAddress  String?
+  type       ReactionType
+  createdAt  DateTime     @default(now())
+
+  article Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  user    User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@unique([articleId, userId, type])
+  @@unique([articleId, ipAddress, type])
+  @@index([articleId])
+}
+
+model Share {
+  id        String        @id @default(uuid())
+  articleId String
+  userId    String?
+  platform  SharePlatform
+  createdAt DateTime      @default(now())
+
+  article Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  user    User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([articleId])
+}
+
+model Collection {
+  id          String   @id @default(uuid())
+  title       String
+  description String?  @db.Text
+  slug        String   @unique
+  coverImage  String?
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  articles CollectionArticle[]
+
+  @@index([slug])
+}
+
+model CollectionArticle {
+  id           String @id @default(uuid())
+  collectionId String
+  articleId    String
+  order        Int    @default(0)
+
+  collection Collection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+  article    Article    @relation(fields: [articleId], references: [id], onDelete: Cascade)
+
+  @@unique([collectionId, articleId])
+  @@index([collectionId])
+  @@index([articleId])
+}
+
+model ArticleVersion {
+  id          String   @id @default(uuid())
+  articleId   String
+  version     String
+  content     String   @db.LongText
+  changelog   String?  @db.Text
+  publishedAt DateTime @default(now())
+
+  article Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
+
+  @@index([articleId])
+}
+
+model ArticlePDF {
+  id         String   @id @default(uuid())
+  articleId  String
+  pdfUrl     String   @db.Text
+  version    String
+  generatedAt DateTime @default(now())
+  downloads  Int      @default(0)
+
+  article Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
+
+  @@index([articleId])
+}
+
+model Citation {
+  id          String   @id @default(uuid())
+  articleId   String
+  authors     String   @db.Text
+  title       String   @db.Text
+  year        Int?
+  journal     String?
+  volume      String?
+  pages       String?
+  doi         String?
+  url         String?
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+
+  article Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
+
+  @@index([articleId])
+}
+
+model Notification {
+  id        String           @id @default(uuid())
+  userId    String
+  type      NotificationType
+  title     String
+  message   String           @db.Text
+  link      String?
+  read      Boolean          @default(false)
+  createdAt DateTime         @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, read])
+  @@index([createdAt])
+}
+
+model EmailSubscription {
+  id        String         @id @default(uuid())
+  userId    String?        @unique
+  email     String         @unique
+  frequency EmailFrequency @default(IMMEDIATE)
+  topics    String?
+  active    Boolean        @default(true)
+  createdAt DateTime       @default(now())
+
+  @@index([email])
+}
+
+model ReadingProgress {
+  id         String   @id @default(uuid())
+  userId     String
+  articleId  String
+  progress   Float
+  lastReadAt DateTime @updatedAt
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  article Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, articleId])
+  @@index([userId])
+}
+
+model SearchQuery {
+  id        String   @id @default(uuid())
+  query     String
+  filters   String?  @db.Text
+  results   Int      @default(0)
+  userId    String?
+  createdAt DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([query])
+  @@index([createdAt])
+}
+
+model RelatedArticle {
+  id              String  @id @default(uuid())
+  articleId       String
+  relatedArticleId String
+  score           Float
+
+  article        Article @relation("ArticleRelations", fields: [articleId], references: [id], onDelete: Cascade)
+  relatedArticle Article @relation("RelatedToArticles", fields: [relatedArticleId], references: [id], onDelete: Cascade)
+
+  @@unique([articleId, relatedArticleId])
+  @@index([articleId])
+}
+
+model ArticleView {
+  id            String   @id @default(uuid())
+  articleId     String
+  userId        String?
+  sessionId     String
+  ipAddress     String?
+  userAgent     String?
+  referer       String?
+  country       String?
+  city          String?
+  region        String?
+  device        String?
+  browser       String?
+  os            String?
+  screenSize    String?
+  entryPage     Boolean  @default(false)
+  exitPage      Boolean  @default(false)
+  scrollDepth   Int?
+  timeSpent     Int?
+  viewedAt      DateTime @default(now())
+  completedRead Boolean  @default(false)
+
+  article Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  user    User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([articleId])
+  @@index([userId])
+  @@index([sessionId])
+  @@index([viewedAt])
+}
+
+model UserSession {
+  id          String   @id @default(uuid())
+  sessionId   String   @unique
+  userId      String?
+  ipAddress   String
+  userAgent   String?
+  country     String?
+  city        String?
+  device      String?
+  browser     String?
+  startedAt   DateTime @default(now())
+  lastActivity DateTime @updatedAt
+  duration    Int      @default(0)
+  pageViews   Int      @default(0)
+  articlesRead Int     @default(0)
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([startedAt])
+}
+
+model RevenueAnalytics {
+  id              String   @id @default(uuid())
+  articleId       String
+  purchaseId      String
+  userId          String
+  amount          Float
+  currency        String   @default("USD")
+  stripeSessionId String?
+  purchasedAt     DateTime @default(now())
+  refundedAt      DateTime?
+  netRevenue      Float
+  stripeFee       Float
+
+  article  Article  @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  purchase Purchase @relation(fields: [purchaseId], references: [id], onDelete: Cascade)
+
+  @@index([articleId])
+  @@index([userId])
+  @@index([purchasedAt])
+}
+
+model ReaderBehavior {
+  id              String   @id @default(uuid())
+  userId          String?
+  sessionId       String
+  ipAddress       String?
+  totalSessions   Int      @default(0)
+  totalPageViews  Int      @default(0)
+  totalTimeSpent  Int      @default(0)
+  articlesViewed  Int      @default(0)
+  articlesCompleted Int    @default(0)
+  articlesPurchased Int    @default(0)
+  totalSpent      Float    @default(0)
+  comments        Int      @default(0)
+  likes           Int      @default(0)
+  shares          Int      @default(0)
+  bookmarks       Int      @default(0)
+  lastVisit       DateTime @updatedAt
+  firstVisit      DateTime @default(now())
+  returningVisitor Boolean @default(false)
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@unique([userId, sessionId])
+  @@index([userId])
+  @@index([lastVisit])
+}
+
+model ConversionFunnel {
+  id            String   @id @default(uuid())
+  articleId     String
+  date          DateTime
+  views         Int      @default(0)
+  uniqueViews   Int      @default(0)
+  scrolled50    Int      @default(0)
+  scrolled75    Int      @default(0)
+  completed     Int      @default(0)
+  liked         Int      @default(0)
+  commented     Int      @default(0)
+  shared        Int      @default(0)
+  bookmarked    Int      @default(0)
+  purchaseAttempts Int   @default(0)
+  purchases     Int      @default(0)
+  revenue       Float    @default(0)
+
+  article Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
+
+  @@unique([articleId, date])
+  @@index([articleId])
+  @@index([date])
+}
+
+model DailyStats {
+  id              String   @id @default(uuid())
+  date            DateTime @unique
+  views           Int      @default(0)
+  uniqueViews     Int      @default(0)
+  sessions        Int      @default(0)
+  newVisitors     Int      @default(0)
+  returningVisitors Int    @default(0)
+  avgTimeSpent    Int      @default(0)
+  avgScrollDepth  Float    @default(0)
+  bounceRate      Float    @default(0)
+  comments        Int      @default(0)
+  likes           Int      @default(0)
+  shares          Int      @default(0)
+  purchases       Int      @default(0)
+  revenue         Float    @default(0)
+  newSubscribers  Int      @default(0)
+
+  @@index([date])
+}
+
+model TopContent {
+  id          String   @id @default(uuid())
+  articleId   String
+  period      String
+  periodStart DateTime
+  periodEnd   DateTime
+  views       Int
+  uniqueViews Int
+  revenue     Float
+  engagement  Float
+  rank        Int
+
+  article Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
+
+  @@unique([articleId, period, periodStart])
+  @@index([period])
+  @@index([rank])
+}
+
+model TrafficSource {
+  id        String   @id @default(uuid())
+  source    String
+  medium    String?
+  campaign  String?
+  date      DateTime
+  sessions  Int      @default(0)
+  pageViews Int      @default(0)
+  revenue   Float    @default(0)
+
+  @@index([source])
+  @@index([date])
+}
+
+model UserJourney {
+  id           String   @id @default(uuid())
+  sessionId    String
+  userId       String?
+  step         Int
+  articleId    String?
+  action       String
+  timestamp    DateTime @default(now())
+  metadata     String?  @db.Text
+
+  user    User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  article Article? @relation(fields: [articleId], references: [id], onDelete: SetNull)
+
+  @@index([sessionId])
+  @@index([userId])
+  @@index([timestamp])
+}
+
+model ArticleArchive {
+  id          String   @id @default(uuid())
+  articleId   String
+  archiveDate DateTime @default(now())
+  archiveUrl  String   @db.Text
+  format      String
+  size        Int
+  checksum    String
+
+  article Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
+
+  @@index([articleId])
+  @@index([archiveDate])
+}
+
+model NewsletterSubscriber {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  userId       String?  @unique
+  isActive     Boolean  @default(true)
+  tags         String?
+  subscribedAt DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([email])
+  @@index([isActive])
+}
+
+model NewsletterCampaign {
+  id         String    @id @default(uuid())
+  subject    String
+  content    String    @db.LongText
+  targetTags String?
+  sentAt     DateTime?
+  sentCount  Int       @default(0)
+  openCount  Int       @default(0)
+  createdAt  DateTime  @default(now())
+
+  @@index([sentAt])
+}
+
+model Tag {
+  id   String @id @default(uuid())
+  name String
+  slug String @unique
+
+  articles Article[] @relation("ArticleTags")
+
+  @@index([slug])
+}
+
+model Session {
+  id        String   @id @default(uuid())
+  userId    String
+  token     String   @unique @db.VarChar(500)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([token])
+  @@index([userId])
+}
+
+enum Role {
+  ADMIN
+  USER
+}
+
+enum ArticleStatus {
+  DRAFT
+  STAGING
+  PUBLISHED
+}
+
+enum MediaType {
+  IMAGE
+  VIDEO
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REFUNDED
+}
+
+enum ReactionType {
+  LIKE
+  LOVE
+  INSIGHTFUL
+  INTERESTING
+  HELPFUL
+}
+
+enum SharePlatform {
+  TWITTER
+  FACEBOOK
+  LINKEDIN
+  REDDIT
+  EMAIL
+  COPY_LINK
+  WHATSAPP
+}
+
+enum NotificationType {
+  NEW_ARTICLE
+  COMMENT_REPLY
+  COMMENT_LIKE
+  ARTICLE_UPDATE
+  MENTION
+}
+
+enum EmailFrequency {
+  IMMEDIATE
+  DAILY
+  WEEKLY
+  MONTHLY
+}
