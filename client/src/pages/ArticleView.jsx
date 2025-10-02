@@ -104,7 +104,13 @@ export default function ArticleView() {
         setBookmarked(true);
       }
     } catch (error) {
-      alert(error.response?.data?.error || 'Failed to update bookmark');
+      if (error.response?.data?.error === 'Article already bookmarked') {
+        setBookmarked(true);
+      } else if (error.response?.data?.error === 'Bookmark not found') {
+        setBookmarked(false);
+      } else {
+        alert(error.response?.data?.error || 'Failed to update bookmark');
+      }
     }
   };
 

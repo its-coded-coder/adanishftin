@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import axios from 'axios';
+import api from '../utils/api';
 
 export default function RelatedArticles({ articleId }) {
   const [articles, setArticles] = useState([]);
@@ -12,7 +12,7 @@ export default function RelatedArticles({ articleId }) {
 
   const loadRelatedArticles = async () => {
     try {
-      const { data } = await axios.get(`/api/related/article/${articleId}`);
+      const { data } = await api.get(`/related/article/${articleId}`);
       setArticles(data.articles);
     } catch (error) {
       console.error('Error loading related articles:', error);

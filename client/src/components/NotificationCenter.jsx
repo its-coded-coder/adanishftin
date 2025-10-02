@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import axios from 'axios';
+import api from '../utils/api';
 
 export default function NotificationCenter() {
   const [notifications, setNotifications] = useState([]);
@@ -29,7 +29,7 @@ export default function NotificationCenter() {
 
   const loadNotifications = async () => {
     try {
-      const { data } = await axios.get('/api/notifications', {
+      const { data } = await api.get('/notifications', {
         params: { limit: 10 }
       });
       setNotifications(data.notifications);
@@ -41,7 +41,7 @@ export default function NotificationCenter() {
 
   const handleMarkAsRead = async (id) => {
     try {
-      await axios.patch(`/api/notifications/${id}/read`);
+      await api.patch(`/notifications/${id}/read`);
       loadNotifications();
     } catch (error) {
       console.error('Error marking notification as read:', error);
@@ -51,7 +51,7 @@ export default function NotificationCenter() {
   const handleMarkAllAsRead = async () => {
     setLoading(true);
     try {
-      await axios.patch('/api/notifications/read-all');
+      await api.patch('/notifications/read-all');
       loadNotifications();
     } catch (error) {
       console.error('Error marking all as read:', error);
@@ -63,7 +63,7 @@ export default function NotificationCenter() {
   const handleDelete = async (id, e) => {
     e.stopPropagation();
     try {
-      await axios.delete(`/api/notifications/${id}`);
+      await api.delete(`/notifications/${id}`);
       loadNotifications();
     } catch (error) {
       console.error('Error deleting notification:', error);

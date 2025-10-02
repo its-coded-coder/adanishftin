@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import axios from 'axios';
+import api from '../utils/api';
 import { useAuth } from '../context/AuthContext';
 
 export default function ContinueReading() {
@@ -16,7 +16,7 @@ export default function ContinueReading() {
 
   const loadProgress = async () => {
     try {
-      const { data } = await axios.get('/api/progress', { params: { limit: 5 } });
+      const { data } = await api.get('/progress', { params: { limit: 5 } });
       setProgress(data.progress.filter(p => p.progress < 95));
     } catch (error) {
       console.error('Error loading progress:', error);
