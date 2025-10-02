@@ -22,10 +22,16 @@ export default function AdminEditor() {
     title: '',
     content: '',
     excerpt: '',
+    abstract: '',
+    keywords: '',
     coverImage: '',
     price: 0,
     isPremium: false,
-    tags: []
+    tags: [],
+    doi: '',
+    readingTime: 0,
+    language: 'en',
+    featured: false
   });
   const [tagInput, setTagInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -45,10 +51,16 @@ export default function AdminEditor() {
         title: data.title,
         content: data.content,
         excerpt: data.excerpt || '',
+        abstract: data.abstract || '',
+        keywords: data.keywords || '',
         coverImage: data.coverImage || '',
         price: data.price,
         isPremium: data.isPremium,
-        tags: data.tags.map(t => t.name)
+        tags: data.tags.map(t => t.name),
+        doi: data.doi || '',
+        readingTime: data.readingTime || 0,
+        language: data.language || 'en',
+        featured: data.featured || false
       });
     } catch (error) {
       alert('Failed to load article');
@@ -148,6 +160,31 @@ export default function AdminEditor() {
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
+            Abstract
+          </label>
+          <textarea
+            value={formData.abstract}
+            onChange={(e) => setFormData({ ...formData, abstract: e.target.value })}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md"
+            rows="4"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Keywords (comma-separated)
+          </label>
+          <input
+            type="text"
+            value={formData.keywords}
+            onChange={(e) => setFormData({ ...formData, keywords: e.target.value })}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md"
+            placeholder="keyword1, keyword2, keyword3"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
             Content
           </label>
           <ReactQuill
@@ -180,6 +217,64 @@ export default function AdminEditor() {
                 className="hidden"
                 disabled={uploading}
               />
+            </label>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              DOI
+            </label>
+            <input
+              type="text"
+              value={formData.doi}
+              onChange={(e) => setFormData({ ...formData, doi: e.target.value })}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md"
+              placeholder="10.1234/example"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Reading Time (minutes)
+            </label>
+            <input
+              type="number"
+              value={formData.readingTime}
+              onChange={(e) => setFormData({ ...formData, readingTime: parseInt(e.target.value) })}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md"
+              min="0"
+            />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Language
+            </label>
+            <select
+              value={formData.language}
+              onChange={(e) => setFormData({ ...formData, language: e.target.value })}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md"
+            >
+              <option value="en">English</option>
+              <option value="es">Spanish</option>
+              <option value="fr">French</option>
+              <option value="de">German</option>
+            </select>
+          </div>
+
+          <div className="flex items-center space-x-4">
+            <label className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                checked={formData.featured}
+                onChange={(e) => setFormData({ ...formData, featured: e.target.checked })}
+                className="rounded"
+              />
+              <span className="text-sm font-medium text-gray-700">Featured Article</span>
             </label>
           </div>
         </div>
