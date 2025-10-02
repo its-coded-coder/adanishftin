@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { articles } from '../utils/api';
 import { cacheArticles, getCachedArticles } from '../utils/db';
 import { newsletter } from '../utils/api';
+import ContinueReading from '../components/ContinueReading';
 
 export default function Home() {
   const [articleList, setArticleList] = useState([]);
@@ -52,6 +53,8 @@ export default function Home() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <ContinueReading />
+
       <div className="mb-8">
         <h1 className="text-4xl font-bold text-gray-900 mb-4">Latest Articles</h1>
         <input

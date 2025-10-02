@@ -68,13 +68,29 @@ export const confirmPayment = async (req, res, next) => {
 
     if (paymentIntent.status === 'succeeded') {
       const purchase = await prisma.purchase.findUnique({
-        where: { stripePaymentId: paymentIntentId }
+        where: { stripePaymentId: paymentIntentId },
+        include: { article: true }
       });
 
       if (purchase && purchase.status !== 'COMPLETED') {
         await prisma.purchase.update({
           where: { id: purchase.id },
           data: { status: 'COMPLETED' }
+        });
+
+        const stripeFee = purchase.amount * 0.029 + 0.30;
+        const netRevenue = purchase.amount - stripeFee;
+
+        await prisma.revenueAnalytics.create({
+          data: {
+            articleId: purchase.articleId,
+            purchaseId: purchase.id,
+            userId: purchase.userId,
+            amount: purchase.amount,
+            netRevenue,
+            stripeFee,
+            stripeSessionId: paymentIntentId
+          }
         });
       }
 

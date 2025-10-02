@@ -8,11 +8,16 @@ import Register from './pages/Register';
 import Profile from './pages/Profile';
 import Bookmarks from './pages/Bookmarks';
 import Purchases from './pages/Purchases';
+import Collections from './pages/Collections';
+import CollectionView from './pages/CollectionView';
+import SearchPage from './pages/SearchPage';
 import AdminDashboard from './pages/admin/Dashboard';
 import AdminArticles from './pages/admin/Articles';
 import AdminEditor from './pages/admin/Editor';
 import AdminUsers from './pages/admin/Users';
 import AdminNewsletter from './pages/admin/Newsletter';
+import AdminComments from './pages/admin/AdminComments';
+import AdminAnalytics from './pages/admin/Analytics';
 
 const ProtectedRoute = ({ children, adminOnly }) => {
   const { user, loading } = useAuth();
