@@ -181,7 +181,21 @@ export const createArticle = async (req, res, next) => {
 export const updateArticle = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { title, content, excerpt, coverImage, price, isPremium, tags } = req.body;
+    const { 
+      title, 
+      content, 
+      excerpt, 
+      abstract,
+      keywords,
+      coverImage, 
+      price, 
+      isPremium, 
+      tags,
+      doi,
+      readingTime,
+      language,
+      featured
+    } = req.body;
 
     const article = await prisma.article.findUnique({
       where: { id }
@@ -195,9 +209,15 @@ export const updateArticle = async (req, res, next) => {
       ...(title && { title, slug: generateSlug(title) }),
       ...(content && { content }),
       ...(excerpt !== undefined && { excerpt }),
+      ...(abstract !== undefined && { abstract }),
+      ...(keywords !== undefined && { keywords }),
       ...(coverImage !== undefined && { coverImage }),
       ...(price !== undefined && { price }),
-      ...(isPremium !== undefined && { isPremium })
+      ...(isPremium !== undefined && { isPremium }),
+      ...(doi !== undefined && { doi }),
+      ...(readingTime !== undefined && { readingTime }),
+      ...(language !== undefined && { language }),
+      ...(featured !== undefined && { featured })
     };
 
     if (tags) {

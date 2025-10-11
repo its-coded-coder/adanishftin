@@ -1,8 +1,5 @@
-import { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
-import axios from 'axios';
 
-export default function CollectionView() {
+export function CollectionView() {
   const { slug } = useParams();
   const [collection, setCollection] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -16,33 +13,60 @@ export default function CollectionView() {
       const { data } = await axios.get(`/api/collections/${slug}`);
       setCollection(data);
     } catch (error) {
-      console.error('Error loading collection:', error);
+      toast.error('Failed to load collection');
     } finally {
       setLoading(false);
     }
   };
 
   if (loading) {
-    return <div className="flex justify-center items-center h-screen">Loading...</div>;
+    return (
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="animate-pulse">
+          <div className="h-64 bg-gray-300 dark:bg-dark-800 rounded-xl mb-8"></div>
+          <div className="space-y-4">
+            {[...Array(3)].map((_, i) => (
+              <div key={i} className="h-32 bg-gray-300 dark:bg-dark-800 rounded-xl"></div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
   }
 
   if (!collection) {
-    return <div className="text-center py-12">Collection not found</div>;
+    return (
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center">
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Collection not found</h2>
+        <Link to="/collections" className="text-primary-600 dark:text-primary-400 hover:underline">
+          Browse all collections
+        </Link>
+      </div>
+    );
   }
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="mb-8">
         {collection.coverImage && (
-          <img
-            src={collection.coverImage}
-            alt={collection.title}
-            className="w-full h-64 object-cover rounded-lg mb-6"
-          />
+          <div className="relative h-64 rounded-xl overflow-hidden mb-6">
+            <img
+              src={collection.coverImage}
+              alt={collection.title}
+              className="w-full h-full object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent"></div>
+            <div className="absolute bottom-0 left-0 right-0 p-8">
+              <h1 className="text-4xl font-bold text-white mb-2">{collection.title}</h1>
+              <div className="text-white/90 text-lg">{collection.articles.length} articles in this collection</div>
+            </div>
+          </div>
         )}
-        <h1 className="text-4xl font-bold text-gray-900 mb-4">{collection.title}</h1>
+        {!collection.coverImage && (
+          <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">{collection.title}</h1>
+        )}
         {collection.description && (
-          <p className="text-lg text-gray-600">{collection.description}</p>
+          <p className="text-lg text-gray-600 dark:text-gray-400">{collection.description}</p>
         )}
       </div>
 
@@ -51,33 +75,35 @@ export default function CollectionView() {
           <Link
             key={item.article.id}
             to={`/article/${item.article.slug}`}
-            className="block bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition"
+            className="block bg-white dark:bg-dark-900 rounded-xl shadow-md overflow-hidden card-hover"
           >
-            <div className="flex">
-              <div className="flex-shrink-0 bg-blue-600 text-white w-16 flex items-center justify-center text-2xl font-bold">
+            <div className="flex flex-col sm:flex-row">
+              <div className="flex-shrink-0 bg-gradient-to-br from-primary-500 to-purple-600 text-white w-full sm:w-20 h-20 sm:h-auto flex items-center justify-center text-3xl font-bold">
                 {idx + 1}
               </div>
               {item.article.coverImage && (
-                <img
-                  src={item.article.coverImage}
-                  alt={item.article.title}
-                  className="w-48 h-32 object-cover"
-                />
+                <div className="w-full sm:w-64 h-48 sm:h-auto">
+                  <img
+                    src={item.article.coverImage}
+                    alt={item.article.title}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
               )}
               <div className="flex-1 p-6">
-                <h2 className="text-2xl font-semibold text-gray-900 mb-2">
+                <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-2">
                   {item.article.title}
                 </h2>
                 {item.article.excerpt && (
-                  <p className="text-gray-600 mb-4">{item.article.excerpt}</p>
+                  <p className="text-gray-600 dark:text-gray-400 mb-4 line-clamp-2">{item.article.excerpt}</p>
                 )}
-                <div className="flex items-center space-x-4 text-sm text-gray-500">
+                <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
                   <span>By {item.article.author.name}</span>
                   {item.article.readingTime && (
                     <span>{item.article.readingTime} min read</span>
                   )}
                   {item.article.isPremium && (
-                    <span className="bg-yellow-100 text-yellow-800 px-2 py-1 rounded">
+                    <span className="bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-400 px-3 py-1 rounded-full font-medium">
                       ${item.article.price}
                     </span>
                   )}

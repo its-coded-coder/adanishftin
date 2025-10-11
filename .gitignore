@@ -10,3 +10,4 @@ prisma/migrations/
 client/node_modules/
 client/dist/
 client/.env
+*.txt

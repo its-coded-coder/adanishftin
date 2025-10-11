@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import axios from 'axios';
 
-export default function ShareButtons({ articleId, articleTitle, articleUrl }) {
+export function ShareButtons({ articleId, articleTitle, articleUrl }) {
   const [showMenu, setShowMenu] = useState(false);
   const [copied, setCopied] = useState(false);
 
@@ -48,7 +48,7 @@ export default function ShareButtons({ articleId, articleTitle, articleUrl }) {
     <div className="relative">
       <button
         onClick={() => setShowMenu(!showMenu)}
-        className="px-4 py-2 border rounded hover:bg-gray-50 flex items-center space-x-2"
+        className="px-4 py-2 border border-gray-300 dark:border-dark-600 rounded-lg hover:bg-gray-50 dark:hover:bg-dark-800 flex items-center space-x-2 text-gray-700 dark:text-gray-300"
       >
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
@@ -57,48 +57,55 @@ export default function ShareButtons({ articleId, articleTitle, articleUrl }) {
       </button>
 
       {showMenu && (
-        <div className="absolute top-12 right-0 bg-white border rounded-lg shadow-lg p-2 z-10 w-48">
+        <div className="absolute top-12 right-0 bg-white dark:bg-dark-800 border border-gray-200 dark:border-dark-700 rounded-lg shadow-lg p-2 z-10 w-48">
           <button
             onClick={() => handlePlatformClick('TWITTER')}
-            className="w-full text-left px-4 py-2 hover:bg-gray-100 rounded flex items-center space-x-2"
+            className="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-dark-700 rounded-lg flex items-center space-x-3 text-gray-700 dark:text-gray-300"
           >
+            <span>𝕏</span>
             <span>Twitter</span>
           </button>
           <button
             onClick={() => handlePlatformClick('FACEBOOK')}
-            className="w-full text-left px-4 py-2 hover:bg-gray-100 rounded flex items-center space-x-2"
+            className="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-dark-700 rounded-lg flex items-center space-x-3 text-gray-700 dark:text-gray-300"
           >
+            <span>📘</span>
             <span>Facebook</span>
           </button>
           <button
             onClick={() => handlePlatformClick('LINKEDIN')}
-            className="w-full text-left px-4 py-2 hover:bg-gray-100 rounded flex items-center space-x-2"
+            className="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-dark-700 rounded-lg flex items-center space-x-3 text-gray-700 dark:text-gray-300"
           >
+            <span>💼</span>
             <span>LinkedIn</span>
           </button>
           <button
             onClick={() => handlePlatformClick('REDDIT')}
-            className="w-full text-left px-4 py-2 hover:bg-gray-100 rounded flex items-center space-x-2"
+            className="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-dark-700 rounded-lg flex items-center space-x-3 text-gray-700 dark:text-gray-300"
           >
+            <span>🔴</span>
             <span>Reddit</span>
           </button>
           <button
             onClick={() => handlePlatformClick('WHATSAPP')}
-            className="w-full text-left px-4 py-2 hover:bg-gray-100 rounded flex items-center space-x-2"
+            className="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-dark-700 rounded-lg flex items-center space-x-3 text-gray-700 dark:text-gray-300"
           >
+            <span>💬</span>
             <span>WhatsApp</span>
           </button>
           <button
             onClick={handleEmail}
-            className="w-full text-left px-4 py-2 hover:bg-gray-100 rounded flex items-center space-x-2"
+            className="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-dark-700 rounded-lg flex items-center space-x-3 text-gray-700 dark:text-gray-300"
           >
+            <span>✉️</span>
             <span>Email</span>
           </button>
-          <div className="border-t my-2"></div>
+          <div className="border-t border-gray-200 dark:border-dark-700 my-2"></div>
           <button
             onClick={handleCopyLink}
-            className="w-full text-left px-4 py-2 hover:bg-gray-100 rounded flex items-center space-x-2"
+            className="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-dark-700 rounded-lg flex items-center space-x-3 text-gray-700 dark:text-gray-300"
           >
+            <span>{copied ? '✓' : '🔗'}</span>
             <span>{copied ? 'Copied!' : 'Copy Link'}</span>
           </button>
         </div>

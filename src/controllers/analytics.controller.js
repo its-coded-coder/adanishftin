@@ -112,15 +112,29 @@ export const getContentPerformance = async (req, res, next) => {
       startDate.setDate(startDate.getDate() - 7);
     } else if (period === 'month') {
       startDate.setMonth(startDate.getMonth() - 1);
+    } else if (period === 'year') {
+      startDate.setFullYear(startDate.getFullYear() - 1);
     }
 
-    const topArticles = await prisma.article.findMany({
-      where: {
-        status: 'PUBLISHED',
-        publishedAt: {
-          gte: startDate
+    const whereClause = {
+      status: 'PUBLISHED',
+      OR: [
+        {
+          publishedAt: {
+            gte: startDate
+          }
+        },
+        {
+          publishedAt: null,
+          createdAt: {
+            gte: startDate
+          }
         }
-      },
+      ]
+    };
+
+    const topArticles = await prisma.article.findMany({
+      where: whereClause,
       orderBy: [
         { views: 'desc' },
         { likes: 'desc' }
@@ -134,7 +148,7 @@ export const getContentPerformance = async (req, res, next) => {
           select: {
             comments: true,
             articleLikes: true,
-            shares: true,
+            shareRecords: true,
             purchases: true
           }
         }
@@ -143,6 +157,7 @@ export const getContentPerformance = async (req, res, next) => {
 
     res.json({ topArticles });
   } catch (error) {
+    console.error('Content performance error:', error);
     next(error);
   }
 };

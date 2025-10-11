@@ -1,8 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../utils/api';
+import { useAuth } from '../context/AuthContext';
 
-export default function RelatedArticles({ articleId }) {
+export function RelatedArticles({ articleId }) {
   const [articles, setArticles] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -26,14 +27,14 @@ export default function RelatedArticles({ articleId }) {
   }
 
   return (
-    <div className="mt-12 border-t pt-8">
-      <h2 className="text-2xl font-bold mb-6">You May Also Like</h2>
+    <div className="mt-12 border-t border-gray-200 dark:border-dark-700 pt-8">
+      <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">You May Also Like</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {articles.map((article) => (
           <Link
             key={article.id}
             to={`/article/${article.slug}`}
-            className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition"
+            className="bg-white dark:bg-dark-900 rounded-lg shadow-md overflow-hidden card-hover"
           >
             {article.coverImage && (
               <img
@@ -43,16 +44,16 @@ export default function RelatedArticles({ articleId }) {
               />
             )}
             <div className="p-4">
-              <h3 className="text-lg font-semibold text-gray-900 mb-2 line-clamp-2">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2 line-clamp-2">
                 {article.title}
               </h3>
               {article.excerpt && (
-                <p className="text-gray-600 text-sm line-clamp-2">{article.excerpt}</p>
+                <p className="text-gray-600 dark:text-gray-400 text-sm line-clamp-2">{article.excerpt}</p>
               )}
               <div className="mt-3 flex items-center justify-between text-sm">
-                <span className="text-gray-500">{article.author.name}</span>
+                <span className="text-gray-500 dark:text-gray-400">{article.author.name}</span>
                 {article.isPremium && (
-                  <span className="bg-yellow-100 text-yellow-800 px-2 py-1 rounded text-xs">
+                  <span className="bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-400 px-2 py-1 rounded text-xs font-medium">
                     ${article.price}
                   </span>
                 )}

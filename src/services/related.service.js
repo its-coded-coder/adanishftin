@@ -71,7 +71,7 @@ export const calculateRelatedArticles = async (articleId) => {
 };
 
 export const getRelatedArticles = async (articleId, limit = 5) => {
-  const related = await prisma.relatedArticle.findMany({
+  let related = await prisma.relatedArticle.findMany({
     where: { articleId },
     take: limit,
     orderBy: { score: 'desc' },
@@ -89,7 +89,22 @@ export const getRelatedArticles = async (articleId, limit = 5) => {
 
   if (related.length === 0) {
     await calculateRelatedArticles(articleId);
-    return getRelatedArticles(articleId, limit);
+    
+    related = await prisma.relatedArticle.findMany({
+      where: { articleId },
+      take: limit,
+      orderBy: { score: 'desc' },
+      include: {
+        relatedArticle: {
+          include: {
+            author: {
+              select: { id: true, name: true }
+            },
+            tags: true
+          }
+        }
+      }
+    });
   }
 
   return related.map(r => r.relatedArticle);
